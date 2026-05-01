@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
+import { Const } from "three/tsl";
 
 const THEME_COLORS = {
   "Edição digital": "#1E6FB9",
@@ -14,7 +15,7 @@ const THEME_COLORS = {
   "Métodos computacionais aplicados": "#EC4899",
 };
 
-const SUPERVISOR_COLOR = "#475569";
+const SUPERVISOR_COLOR = "#76869e";
 const COSUPERVISION_COLOR = "rgba(100, 116, 139, 0.32)";
 const THEME_LINK_COLOR = "rgba(30, 111, 185, 0.22)";
 
@@ -204,15 +205,14 @@ export default function SupervisorThemeNetwork({ data = [] }) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      graphRef.current?.zoomToFit(800, 120);
-    }, 800);
+      graphRef.current?.zoomToFit(600, 55);
+       }, 300);
 
     return () => clearTimeout(timer);
   }, [graphData]);
 
   function handleNodeClick(node) {
     setSelected(node);
-    setTimeout(() => graphRef.current?.zoomToFit(600, 120), 100);
   }
 
   const themeRanking =
@@ -295,13 +295,35 @@ export default function SupervisorThemeNetwork({ data = [] }) {
       </div>
 
       <div className="supervisor-network-layout">
+        
         <div className="supervisor-network-graph">
+
+         <div className="network-graph-tools">
+            <button
+                type="button"
+                onClick={() => graphRef.current?.zoomToFit(600, 60)}
+                title="Recentrar rede"
+            >
+                ⊕
+            </button>
+
+            <button
+                type="button"
+                onClick={() => graphRef.current?.zoom(1, 400)}
+                title="Reset zoom"
+            >
+                ⟳
+            </button>
+            </div>
+
           <ForceGraph2D
             ref={graphRef}
+             width={760}
+            height={680}
             graphData={graphData}
             backgroundColor="#f8fafc"
             cooldownTicks={90}
-            onEngineStop={() => graphRef.current?.zoomToFit(500, 120)}
+            onEngineStop={() => graphRef.current?.zoomToFit(500, 30)}
             onNodeClick={handleNodeClick}
             onNodeHover={(node) => setHoverNode(node || null)}
             linkWidth={(link) =>
@@ -369,21 +391,27 @@ export default function SupervisorThemeNetwork({ data = [] }) {
                 ctx.stroke();
               }
 
-              if (isTheme || globalScale > 1.8 || isHover || isSelected) {
-                ctx.font = `${
-                  isTheme ? 11 / globalScale : 9 / globalScale
-                }px Inter, Arial`;
+                if (isTheme || globalScale > 1.8 || isHover || isSelected) {
+                const textColor = isTheme ? getThemeColor(node.label) : "#334155";
+
+                ctx.font = isTheme
+                    ? `bold ${13 / globalScale}px Inter, Arial`
+                    : `${11 / globalScale}px Inter, Arial`;
+
                 ctx.textAlign = "center";
                 ctx.textBaseline = "top";
-                ctx.fillStyle = "#334155";
-                ctx.fillText(
-                  node.label.length > 34
-                    ? `${node.label.slice(0, 34)}…`
-                    : node.label,
-                  node.x,
-                  node.y + radius + 5
-                );
-              }
+                ctx.fillStyle = textColor;
+
+            const labelLimit = isTheme ? 52 : 34;
+
+            ctx.fillText(
+            node.label.length > labelLimit
+                ? `${node.label.slice(0, labelLimit)}…`
+                : node.label,
+            node.x,
+            node.y + radius + 6
+            );
+                }
             }}
             nodePointerAreaPaint={(node, color, ctx) => {
               ctx.fillStyle = color;

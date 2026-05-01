@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
 
 function splitSubjects(value) {
   return String(value || "")
@@ -24,11 +26,7 @@ function cleanDescription(text) {
     .map((p) => p.trim())
     .filter(Boolean);
 
-  if (parts.length > 1) {
-    return parts.slice(1).join(" | ");
-  }
-
-  return text;
+  return parts.length > 1 ? parts.slice(1).join(" | ") : text;
 }
 
 function short(text, max = 70) {
@@ -38,7 +36,8 @@ function short(text, max = 70) {
 
 export default function ThematicTimeline({ data = [] }) {
   const [themeFilter, setThemeFilter] = useState("todos");
-  const [yearLimit, setYearLimit] = useState(null);
+  const [yearStart, setYearStart] = useState(null);
+  const [yearEnd, setYearEnd] = useState(null);
   const [selected, setSelected] = useState(null);
 
   const years = useMemo(() => {
@@ -48,7 +47,8 @@ export default function ThematicTimeline({ data = [] }) {
 
   const minYear = years[0] || 2017;
   const maxYear = years.at(-1) || 2025;
-  const activeYear = yearLimit ?? maxYear;
+  const activeStartYear = yearStart ?? minYear;
+  const activeEndYear = yearEnd ?? maxYear;
 
   const themes = useMemo(() => {
     const set = new Set();
@@ -73,10 +73,12 @@ export default function ThematicTimeline({ data = [] }) {
           id: d.id || `tese-${index}`,
           title: d.titulo || "Sem título",
           author: d.autor || "Autor não identificado",
-          institution: d.instituicao_abreviada || d.instituicao || "Sem instituição",
+          institution:
+            d.instituicao_abreviada || d.instituicao || "Sem instituição",
           year: Number(d.ano) || "",
           degree: d.tipo_label || d.grau || d.tipo || "",
-          mainTheme: d.descritor_primario_label || d.subject || "Sem tema principal",
+          mainTheme:
+            d.descritor_primario_label || d.subject || "Sem tema principal",
           themes,
           keywords: splitSubjects(d.palavra_chave),
           description: cleanDescription(d.descricao_spatial) || d.resumo || "",
@@ -84,13 +86,15 @@ export default function ThematicTimeline({ data = [] }) {
         };
       })
       .filter((d) => {
-        const matchYear = !d.year || d.year <= activeYear;
+        const matchYear =
+          !d.year || (d.year >= activeStartYear && d.year <= activeEndYear);
+
         const matchTheme =
           themeFilter === "todos" ? true : d.themes.includes(themeFilter);
 
         return matchYear && matchTheme;
       });
-  }, [data, activeYear, themeFilter]);
+  }, [data, activeStartYear, activeEndYear, themeFilter]);
 
   const institutions = useMemo(() => {
     const counts = {};
@@ -147,8 +151,8 @@ export default function ThematicTimeline({ data = [] }) {
         <div>
           <h2>Cronologia temática por instituição</h2>
           <p>
-            Visualização interativa da distribuição temporal das teses e dissertações
-            por instituição, tema e grau académico.
+            Visualização interativa da distribuição temporal das teses e
+            dissertações por instituição, tema e grau académico.
           </p>
         </div>
 
@@ -171,17 +175,24 @@ export default function ThematicTimeline({ data = [] }) {
         </div>
 
         <div className="timeline-year-control">
-          <strong>Até {activeYear}</strong>
-          <input
-            type="range"
-            min={minYear}
-            max={maxYear}
-            value={activeYear}
-            onChange={(e) => {
-              setYearLimit(Number(e.target.value));
-              setSelected(null);
-            }}
-          />
+          <strong>
+            De {activeStartYear} até {activeEndYear}
+          </strong>
+
+        <Slider
+          range
+          min={minYear}
+          max={maxYear}
+          value={[activeStartYear, activeEndYear]}
+          onChange={(value) => {
+            if (!Array.isArray(value)) return;
+
+            const [start, end] = value;
+            setYearStart(start);
+            setYearEnd(end);
+            setSelected(null);
+          }}
+        />
         </div>
       </div>
 
@@ -190,6 +201,7 @@ export default function ThematicTimeline({ data = [] }) {
           <svg viewBox={`0 0 ${width} ${height}`} role="img">
             {years.map((year) => {
               const x = xForYear(year);
+
               return (
                 <g key={year}>
                   <line
@@ -213,6 +225,7 @@ export default function ThematicTimeline({ data = [] }) {
 
             {institutions.map((institution) => {
               const y = yForInstitution(institution);
+
               return (
                 <g key={institution}>
                   <line
@@ -236,8 +249,12 @@ export default function ThematicTimeline({ data = [] }) {
 
             {chartItems.map((d) => {
               const x = xForYear(d.year) + ((d.offset - 1) % 4) * 12;
-              const y = yForInstitution(d.institution) + Math.floor((d.offset - 1) / 4) * 12;
-              const isDoctoral = String(d.degree).toLowerCase().includes("doutoramento");
+              const y =
+                yForInstitution(d.institution) +
+                Math.floor((d.offset - 1) / 4) * 12;
+              const isDoctoral = String(d.degree)
+                .toLowerCase()
+                .includes("doutoramento");
               const isSelected = selected?.id === d.id;
 
               return (
@@ -285,53 +302,72 @@ export default function ThematicTimeline({ data = [] }) {
           )}
 
           <div className="timeline-record-list">
-            {selectedList.map((item) => (
-              <article
-                key={item.id}
-                className={`timeline-record-card ${
-                  selected?.id === item.id ? "active" : ""
-                }`}
-                onClick={() => setSelected(item)}
-              >
-                <div className="record-meta">
-                  <span>{item.institution}</span>
-                  <span>{item.year}</span>
-                </div>
+            {selectedList.map((item) => {
+              const isDoctoral = item.degree
+                .toLowerCase()
+                .includes("doutoramento");
 
-                <h3>{item.title}</h3>
+              return (
+                <article
+                  key={item.id}
+                  className={`timeline-record-card ${
+                    selected?.id === item.id ? "active" : ""
+                  }`}
+                  onClick={() => setSelected(item)}
+                >
+                  <div className="record-meta">
+                    <span>{item.institution}</span>
+                    <span>{item.year}</span>
+                  </div>
 
-                <p className="record-author">{item.author}</p>
+                  <h3>{item.title}</h3>
 
+                  <p className="record-author">{item.author}</p>
 
-                {selected?.id === item.id && (
-                  <>
-                    {item.themes?.length > 0 && (
-                      <div className="record-tags">
-                        {item.themes.map((theme) => (
-                          <span key={theme}>{theme}</span>
-                        ))}
-                      </div>
-                    )}
-
-                    {item.description && (
-                      <p className="record-description">{short(item.description, 260)}</p>
-                    )}
-
-                    {item.url && (
-                      <a
-                        href={item.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="source-link"
-                        onClick={(e) => e.stopPropagation()}
+                  {item.degree && (
+                    <div className="record-badges">
+                      <span
+                        className={`badge badge-degree ${
+                          isDoctoral ? "badge-phd" : "badge-master"
+                        }`}
                       >
-                        Ver registo na fonte ↗
-                      </a>
-                    )}
-                  </>
-                )}
-              </article>
-            ))}
+                        {item.degree}
+                      </span>
+                    </div>
+                  )}
+
+                  {selected?.id === item.id && (
+                    <>
+                      {item.themes?.length > 0 && (
+                        <div className="record-tags">
+                          {item.themes.map((theme) => (
+                            <span key={theme}>{theme}</span>
+                          ))}
+                        </div>
+                      )}
+
+                      {item.description && (
+                        <p className="record-description">
+                          {short(item.description, 260)}
+                        </p>
+                      )}
+
+                      {item.url && (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="source-link"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Ver registo na fonte ↗
+                        </a>
+                      )}
+                    </>
+                  )}
+                </article>
+              );
+            })}
           </div>
         </aside>
       </div>

@@ -33,7 +33,7 @@
   overflow: hidden;
 }
 
-/* BADGES */
+/* BADGES — sistema unificado */
 
 .badge {
   display: inline-block;
@@ -44,26 +44,39 @@
   line-height: 1;
 }
 
-.card-badges {
+/* container de badges */
+.card-badges,
+.record-badges {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
   margin-top: auto;
-  padding-top: 18px;
+  padding-top: 12px;
 }
 
+/* === GRAU ACADÉMICO === */
+
+.badge-degree {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* dissertação (mestrado) */
+.badge-master,
 .badge-dissertacao {
   background: #1E6FB9;
   color: #fff;
 }
 
+/* tese (doutoramento) */
+.badge-phd,
 .badge-tese {
   background: #F59E0B;
   color: #fff;
 }
 
-/* badge para repositório / universidade */
+/* === OUTROS BADGES === */
 
 .badge-repositorio {
   background: #e0dbd6;
@@ -73,22 +86,6 @@
 .badge-tema {
   background: #eef2ff;
   color: #736eb9;
-}
-
-/* ELEMENTOS GENÉRICOS DE CARD */
-
-.card-image {
-  height: 180px;
-  background-size: cover;
-  background-position: center;
-  background-color: #e5e7eb;
-}
-
-.card-content {
-  padding: 16px 16px 24px 24px;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
 }
 
 /* LISTAGEM DE TESES — toolbar, filtros e grelha responsiva */
@@ -150,7 +147,7 @@
   }
 }
 
-/* VISUALIZAÇÃO TEMATIC TIMELINE */
+/* VISUALIZAÇÃO TEMATICA TIMELINE */
 
 .creative-timeline-section {
   margin-top: 3rem;
@@ -165,7 +162,7 @@
   display: grid;
   grid-template-columns: 1fr 360px 220px;
   gap: 1rem;
-  align-items: end;
+  align-items: stretch;
   margin-bottom: 1.5rem;
 }
 
@@ -183,30 +180,65 @@
 
 .timeline-control,
 .timeline-year-control {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.timeline-control,
+.timeline-year-control {
   padding: 1rem;
   border-radius: 14px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04); 
 }
 
 .timeline-control strong,
 .timeline-year-control strong {
   display: block;
   margin-bottom: 0.6rem;
-  color: #0f172a;
-}
-
-.timeline-control select,
-.timeline-year-control input {
-  width: 100%;
+  color: #334155;
 }
 
 .timeline-control select {
+  width: 100%;
   padding: 0.7rem 0.85rem;
   border-radius: 10px;
   border: 1px solid #cbd5e1;
   background: #ffffff;
   color: #0f172a;
+}
+
+.timeline-year-control .rc-slider {
+  margin-top: 0.1rem;/* mais próximo do título */
+  margin-bottom: 0;
+}
+
+.timeline-year-control .rc-slider-track {
+  background-color: #1d70b8;
+  height: 4px;
+}
+
+.timeline-year-control .rc-slider-rail {
+  height: 4px;
+}
+
+.timeline-year-control .rc-slider-handle {
+  border-color: #1d70b8;
+  opacity: 1;
+  margin-top: -10px;   /* sobe o slider visualmente */
+}
+
+.timeline-year-control .rc-slider-handle:focus,
+.timeline-year-control .rc-slider-handle:hover {
+  border-color: #0f5ea8;
+  box-shadow: 0 0 0 4px rgba(29, 112, 184, 0.15);
+}
+
+/* esconder anos em baixo */
+.timeline-year-control .rc-slider-mark {
+  display: none;
 }
 
 .creative-timeline-layout {
@@ -413,8 +445,9 @@
 .network-control {
   padding: 1rem;
   border-radius: 14px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
 }
 
 .network-control strong {
@@ -440,14 +473,11 @@
 
 .supervisor-network-graph {
   position: relative;
-  height: 620px;
+  height: 680px;
   overflow: hidden;
   border-radius: 18px;
   border: 1px solid #e5e7eb;
-  background:
-    radial-gradient(circle at 25% 20%, rgba(30, 111, 185, 0.08), transparent 28%),
-    radial-gradient(circle at 80% 70%, rgba(245, 158, 11, 0.08), transparent 24%),
-    #f8fafc;
+  background: #f8fafc;
 }
 
 .network-hover-card {
@@ -479,7 +509,7 @@
 }
 
 .supervisor-network-panel {
-  max-height: 620px;
+  max-height: 680px;
   overflow-y: auto;
   padding: 1rem;
   border-radius: 18px;
