@@ -43,25 +43,7 @@ function getRecordUrl(item) {
 }
 
 function cleanDegree(value) {
-  if (!value) return "";
-
-  const parts = String(value)
-    .split("|")
-    .map((p) => p.trim())
-    .filter(Boolean);
-
-  return parts.at(-1) || value;
-}
-
-function cleanDescription(value) {
-  if (!value) return "";
-
-  const parts = String(value)
-    .split("|")
-    .map((p) => p.trim())
-    .filter(Boolean);
-
-  return parts.length > 1 ? parts.slice(1).join(" ") : value;
+  return value ? String(value).trim() : "";
 }
 
 function formatOrientacoes(count) {
@@ -148,9 +130,7 @@ export default function SupervisorThemeNetwork({ data = [] }) {
       const theme = getTheme(item);
       const supervisors = splitValues(item.orientador);
       const tipo = String(item.tipo || "").toLowerCase();
-      const degree = cleanDegree(item.tipo_label || item.tipo || "");
-      const description = cleanDescription(item.descricao_spatial || item.resumo || "");
-
+      
       if (!themeMap.has(theme)) {
         themeMap.set(theme, {
           id: `theme-${theme}`,
@@ -186,6 +166,8 @@ export default function SupervisorThemeNetwork({ data = [] }) {
 
         supervisor.themes[theme] = (supervisor.themes[theme] || 0) + 1;
 
+        const degree = item.grau || item.tipo_label || item.tipo || "";
+        
         supervisor.theses.push({
           id: item.id || `${name}-${index}`,
           title: item.titulo || "Sem título",
@@ -194,7 +176,7 @@ export default function SupervisorThemeNetwork({ data = [] }) {
           institution: item.instituicao_abreviada || item.instituicao || "",
           theme,
           degree,
-          description,
+          description: item.abstract_s || item.resumo || "",
           url: getRecordUrl(item),
         });
 
@@ -530,6 +512,12 @@ export default function SupervisorThemeNetwork({ data = [] }) {
                       <p className="record-author">{item.autor}</p>
                       <DegreeBadge degree={degree} />
 
+                        {item.abstract_s && (
+                        <p className="record-description">
+                            {item.abstract_s}
+                        </p>
+                        )}
+
                       {url && (
                         <a
                           href={url}
@@ -575,7 +563,7 @@ export default function SupervisorThemeNetwork({ data = [] }) {
                 </p>
               )}
 
-              <h4>Temas associados</h4>
+              <h4>Tema(s) associado(s):</h4>
               <div className="record-tags">
                 {themeRanking.map(([theme, count]) => (
                   <span key={theme}>

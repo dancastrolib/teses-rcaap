@@ -12,7 +12,7 @@ function KeywordCloud({ items, onSelectKeyword }) {
     <div className="keyword-cloud-card">
       <div className="keyword-cloud-header">
         <span>{items.length} palavras-chave</span>
-        <small>Clica numa palavra para ver os registos associados</small>
+        <small>Clique numa palavra-chave para ver os registos associados</small>
       </div>
 
       <div className="keyword-cloud-grid">

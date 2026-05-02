@@ -1,6 +1,6 @@
 export function processData(records) {
   return records.map((r) => {
-    console.log("descricao_spatial raw:", r["descricao_spatial"]);
+    console.log("abstract_s raw:", r["abstract_s"]);
     const tipo = (r["document_type"] || "").trim();
     const idioma = (r["language"] || "").trim().toLowerCase();
     const direitos = (r["rights"] || "").trim().toLowerCase();
@@ -44,7 +44,7 @@ export function processData(records) {
       idioma_label: idiomaLabel,
 
       resumo: r["abstract"] || "",
-      descricao_spatial: r["descricao_spatial"] || r["Descricao_spatial"] || "",
+      abstract_s: r["abstract_s"] || r["abstract_s"] || "",
       palavra_chave: (r["keywords"] || "")
         .replace(/\s*\|\s*/g, "; ")
         .trim(),

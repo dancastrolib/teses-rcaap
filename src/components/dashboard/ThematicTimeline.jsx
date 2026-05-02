@@ -90,7 +90,7 @@ export default function ThematicTimeline({ data = [] }) {
             d.descritor_primario_label || d.subject || "Sem tema principal",
           themes,
           keywords: splitSubjects(d.palavra_chave),
-          description: cleanDescription(d.descricao_spatial) || d.resumo || "",
+          description: cleanDescription(d.abstract_s) || d.resumo || "",
           url: d.record_url || d.landing_page_url || d.url || "",
         };
       })
@@ -134,7 +134,7 @@ export default function ThematicTimeline({ data = [] }) {
   const width = 920;
   const height = Math.max(420, institutions.length * 54 + 100);
   const left = 120;
-  const right = 40;
+  const right = 85;
   const top = 50;
   const bottom = 60;
 

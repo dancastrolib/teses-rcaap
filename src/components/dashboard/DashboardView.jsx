@@ -103,7 +103,7 @@ function DashboardView({ data, setView, setSelectedItem, setDetailOrigin }) {
         }))
         .filter((item) => !EXCLUDE.includes(item.keyword))
         .sort((a, b) => b.count - a.count)
-        .slice(0, 40);
+        
   }, [data, temaSelecionado]);
 
   const resultadosKeyword = useMemo(() => {
@@ -248,7 +248,7 @@ function DashboardView({ data, setView, setSelectedItem, setDetailOrigin }) {
           }}
         >
           <div>
-            <h2 style={{ margin: 0 }}>Palavras-chave atribuídas pelos autores</h2>
+            <h2 style={{ margin: 0 }}>Palavras-chave atribuídas pelos autores por tema</h2>
           </div>
 
           <select
