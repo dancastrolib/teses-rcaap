@@ -166,7 +166,7 @@ export default function SupervisorThemeNetwork({ data = [] }) {
 
         supervisor.themes[theme] = (supervisor.themes[theme] || 0) + 1;
 
-        const degree = item.grau || item.tipo_label || item.tipo || "";
+        const degree = item.tipo_label || item.grau || item.tipo || "";
         
         supervisor.theses.push({
           id: item.id || `${name}-${index}`,
