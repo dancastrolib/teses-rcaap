@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import StatCard from './StatCard';
 import TypePieChart from './TypePieChart';
 import TemporalTypeChart from './TemporalTypeChart';
-import InstitutionsChart from './InstitutionsChart';
 import ThemeDistributionChart from './ThemeDistributionChart';
 import ThematicTimeline from "./ThematicTimeline";
 import SupervisorThemeNetwork from './SupervisorThemeNetwork';
@@ -72,70 +71,7 @@ function DashboardView({ data, setView, setSelectedItem, setDetailOrigin }) {
     [data]
   );
 
-  const totalInstituicoes = useMemo(() => {
-    return new Set(
-      data.map((item) => item.instituicao).filter(Boolean)
-    ).size;
-  }, [data]);
-
-  const totalOrientadores = useMemo(() => {
-    const nomes = new Set();
-
-    data.forEach((item) => {
-      (item.orientador || '')
-        .split(/[;|]+/)
-        .map((nome) => nome.trim())
-        .filter(Boolean)
-        .forEach((nome) => nomes.add(nome));
-    });
-
-    return nomes.size;
-  }, [data]);
-
-  const instituicoesTop = useMemo(() => {
-    const mapa = {};
-
-    data.forEach((item) => {
-      const nome = item.instituicao_abreviada?.trim();
-      if (!nome) return;
-      mapa[nome] = (mapa[nome] || 0) + 1;
-    });
-
-    return Object.entries(mapa)
-      .map(([instituicao_abreviada, total]) => ({
-        instituicao_abreviada,
-        total,
-      }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 10);
-  }, [data]);
-
-  const orientadoresPorInstituicao = useMemo(() => {
-    const mapa = {};
-
-    data.forEach((item) => {
-      const instituicao = item.instituicao_abreviada?.trim();
-      if (!instituicao) return;
-
-      if (!mapa[instituicao]) mapa[instituicao] = new Set();
-
-      (item.orientador || '')
-        .split(/[;|]+/)
-        .map((nome) => nome.trim())
-        .filter(Boolean)
-        .forEach((nome) => mapa[instituicao].add(nome));
-    });
-
-    return Object.entries(mapa)
-      .map(([instituicao_abreviada, nomes]) => ({
-        instituicao_abreviada,
-        total: nomes.size,
-      }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 10);
-  }, [data]);
-
-  const keywordsPorTema = useMemo(() => {
+    const keywordsPorTema = useMemo(() => {
     const mapa = {};
 
     data
@@ -236,8 +172,32 @@ function DashboardView({ data, setView, setSelectedItem, setDetailOrigin }) {
           <StatCard title="Total" value={data.length} />
           <StatCard title="Mestrados" value={totalMestrados} />
           <StatCard title="Doutoramentos" value={totalDoutoramentos} />
-          <StatCard title="Instituições" value={totalInstituicoes} />
-          <StatCard title="Orientadores" value={totalOrientadores} />
+
+          <StatCard
+              title="Instituições"
+              value={
+                new Set(
+                  data
+                    .map((d) => d.instituicao_abreviada || d.instituicao)
+                    .filter(Boolean)
+                ).size
+              }
+            />
+
+            <StatCard
+              title="Orientadores"
+              value={
+                new Set(
+                  data
+                    .flatMap((d) =>
+                      String(d.orientador || "")
+                        .split(/[;|]+/)
+                        .map((n) => n.trim())
+                        .filter(Boolean)
+                    )
+                ).size
+              }
+            />
         </div>
       </section>
 
@@ -266,40 +226,6 @@ function DashboardView({ data, setView, setSelectedItem, setDetailOrigin }) {
         </div>
       </section>
 
-      <section style={{ marginBottom: '32px' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-            gap: '24px',
-            alignItems: 'stretch',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ marginBottom: '16px' }}>Top Instituições</h2>
-            <div style={{ flex: 1 }}>
-              <InstitutionsChart
-                data={instituicoesTop}
-                truncateLabels={false}
-                compact={true}
-                valueLabel="documentos"
-              />
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ marginBottom: '16px' }}>Orientadores por instituição</h2>
-            <div style={{ flex: 1 }}>
-              <InstitutionsChart
-                data={orientadoresPorInstituicao}
-                truncateLabels={false}
-                compact={true}
-                valueLabel="orientadores"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
 
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ marginBottom: '16px' }}>Distribuição temática</h2>
@@ -322,7 +248,7 @@ function DashboardView({ data, setView, setSelectedItem, setDetailOrigin }) {
           }}
         >
           <div>
-            <h2 style={{ margin: 0 }}>Nuvens de palavras-chave por temática</h2>
+            <h2 style={{ margin: 0 }}>Palavras-chave atribuídas pelos autores</h2>
           </div>
 
           <select

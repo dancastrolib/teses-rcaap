@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
-import { Const } from "three/tsl";
 
 const THEME_COLORS = {
   "Edição digital": "#1E6FB9",
@@ -43,12 +42,52 @@ function getRecordUrl(item) {
   return item.link || item.record_url || item.url || item.landing_page_url || "";
 }
 
+function cleanDegree(value) {
+  if (!value) return "";
+
+  const parts = String(value)
+    .split("|")
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  return parts.at(-1) || value;
+}
+
+function cleanDescription(value) {
+  if (!value) return "";
+
+  const parts = String(value)
+    .split("|")
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  return parts.length > 1 ? parts.slice(1).join(" ") : value;
+}
+
 function formatOrientacoes(count) {
   return count === 1 ? "1 orientação" : `${count} orientações`;
 }
 
 function formatDegreeStats(master, doctoral) {
   return `${master} mestrado · ${doctoral} doutoramento`;
+}
+
+function DegreeBadge({ degree }) {
+  if (!degree) return null;
+
+  const isDoctoral = degree.toLowerCase().includes("doutoramento");
+
+  return (
+    <div className="record-badges">
+      <span
+        className={`badge badge-degree ${
+          isDoctoral ? "badge-phd" : "badge-master"
+        }`}
+      >
+        {degree}
+      </span>
+    </div>
+  );
 }
 
 export default function SupervisorThemeNetwork({ data = [] }) {
@@ -91,15 +130,12 @@ export default function SupervisorThemeNetwork({ data = [] }) {
       const theme = getTheme(item);
       const supervisors = splitValues(item.orientador);
 
-      const matchInstitution =
-        institutionFilter === "todos" || institution === institutionFilter;
-
-      const matchTheme = themeFilter === "todos" || theme === themeFilter;
-
-      const matchSupervisor =
-        supervisorFilter === "todos" || supervisors.includes(supervisorFilter);
-
-      return matchInstitution && matchTheme && matchSupervisor;
+      return (
+        (institutionFilter === "todos" || institution === institutionFilter) &&
+        (themeFilter === "todos" || theme === themeFilter) &&
+        (supervisorFilter === "todos" ||
+          supervisors.includes(supervisorFilter))
+      );
     });
   }, [data, institutionFilter, themeFilter, supervisorFilter]);
 
@@ -112,6 +148,8 @@ export default function SupervisorThemeNetwork({ data = [] }) {
       const theme = getTheme(item);
       const supervisors = splitValues(item.orientador);
       const tipo = String(item.tipo || "").toLowerCase();
+      const degree = cleanDegree(item.tipo_label || item.tipo || "");
+      const description = cleanDescription(item.descricao_spatial || item.resumo || "");
 
       if (!themeMap.has(theme)) {
         themeMap.set(theme, {
@@ -155,8 +193,8 @@ export default function SupervisorThemeNetwork({ data = [] }) {
           year: item.ano || "",
           institution: item.instituicao_abreviada || item.instituicao || "",
           theme,
-          degree: item.tipo_label || item.tipo || "",
-          description: item.descricao_spatial || item.resumo || "",
+          degree,
+          description,
           url: getRecordUrl(item),
         });
 
@@ -206,7 +244,7 @@ export default function SupervisorThemeNetwork({ data = [] }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       graphRef.current?.zoomToFit(600, 55);
-       }, 300);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [graphData]);
@@ -295,30 +333,28 @@ export default function SupervisorThemeNetwork({ data = [] }) {
       </div>
 
       <div className="supervisor-network-layout">
-        
         <div className="supervisor-network-graph">
-
-         <div className="network-graph-tools">
+          <div className="network-graph-tools">
             <button
-                type="button"
-                onClick={() => graphRef.current?.zoomToFit(600, 60)}
-                title="Recentrar rede"
+              type="button"
+              onClick={() => graphRef.current?.zoomToFit(600, 60)}
+              title="Recentrar rede"
             >
-                ⊕
+              ⊕
             </button>
 
             <button
-                type="button"
-                onClick={() => graphRef.current?.zoom(1, 400)}
-                title="Reset zoom"
+              type="button"
+              onClick={() => graphRef.current?.zoom(1, 400)}
+              title="Reset zoom"
             >
-                ⟳
+              ⟳
             </button>
-            </div>
+          </div>
 
           <ForceGraph2D
             ref={graphRef}
-             width={760}
+            width={760}
             height={680}
             graphData={graphData}
             backgroundColor="#f8fafc"
@@ -342,7 +378,7 @@ export default function SupervisorThemeNetwork({ data = [] }) {
 
               const radius = isTheme
                 ? Math.min(22, 8 + Math.sqrt(node.count) * 4)
-                : Math.min(15, 5 + Math.sqrt(node.count) * 4.2);
+                : Math.min(13, 4 + Math.sqrt(node.count) * 3.5);
 
               if (isTheme) {
                 const color = getThemeColor(node.label);
@@ -350,7 +386,7 @@ export default function SupervisorThemeNetwork({ data = [] }) {
                 ctx.beginPath();
                 ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
                 ctx.fillStyle = color;
-                ctx.shadowBlur = isHover || isSelected ? 14 : 8;
+                ctx.shadowBlur = isHover || isSelected ? 12 : 6;
                 ctx.shadowColor = color;
                 ctx.fill();
                 ctx.shadowBlur = 0;
@@ -391,27 +427,25 @@ export default function SupervisorThemeNetwork({ data = [] }) {
                 ctx.stroke();
               }
 
-                if (isTheme || globalScale > 1.8 || isHover || isSelected) {
+              if (isTheme || globalScale > 1.8 || isHover || isSelected) {
                 const textColor = isTheme ? getThemeColor(node.label) : "#334155";
+                const labelLimit = isTheme ? 52 : 34;
 
                 ctx.font = isTheme
-                    ? `bold ${13 / globalScale}px Inter, Arial`
-                    : `${11 / globalScale}px Inter, Arial`;
-
+                  ? `bold ${13 / globalScale}px Inter, Arial`
+                  : `${11 / globalScale}px Inter, Arial`;
                 ctx.textAlign = "center";
                 ctx.textBaseline = "top";
                 ctx.fillStyle = textColor;
 
-            const labelLimit = isTheme ? 52 : 34;
-
-            ctx.fillText(
-            node.label.length > labelLimit
-                ? `${node.label.slice(0, labelLimit)}…`
-                : node.label,
-            node.x,
-            node.y + radius + 6
-            );
-                }
+                ctx.fillText(
+                  node.label.length > labelLimit
+                    ? `${node.label.slice(0, labelLimit)}…`
+                    : node.label,
+                  node.x,
+                  node.y + radius + 6
+                );
+              }
             }}
             nodePointerAreaPaint={(node, color, ctx) => {
               ctx.fillStyle = color;
@@ -478,6 +512,7 @@ export default function SupervisorThemeNetwork({ data = [] }) {
               <div className="timeline-record-list">
                 {selectedThemeRecords.map((item) => {
                   const url = getRecordUrl(item);
+                  const degree = cleanDegree(item.tipo_label || item.tipo || "");
 
                   return (
                     <article
@@ -493,9 +528,7 @@ export default function SupervisorThemeNetwork({ data = [] }) {
 
                       <h3>{item.titulo || "Sem título"}</h3>
                       <p className="record-author">{item.autor}</p>
-                      <p className="record-theme">
-                        {item.tipo_label || item.tipo}
-                      </p>
+                      <DegreeBadge degree={degree} />
 
                       {url && (
                         <a
@@ -559,18 +592,16 @@ export default function SupervisorThemeNetwork({ data = [] }) {
                       <span>{t.institution}</span>
                       <span>{t.year}</span>
                     </div>
+
                     <h3>{t.title}</h3>
                     <p className="record-author">{t.author}</p>
-                        {t.description && (
-                        <p className="record-description">
-                            {t.description.split("|").map((part, i) => (
-                                <span key={i}>
-                                {part.trim()}
-                                <br />
-                                </span>
-                            ))}
-                            </p>
-                        )}
+
+                    <DegreeBadge degree={t.degree} />
+
+                    {t.description && (
+                      <p className="record-description">{t.description}</p>
+                    )}
+
                     {t.url && (
                       <a
                         href={t.url}

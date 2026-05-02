@@ -23,6 +23,22 @@
   border-color: #cbd5e1;
 }
 
+/* ELEMENTOS GENÉRICOS DE CARD */
+
+.card-image {
+  height: 180px;
+  background-size: cover;
+  background-position: center;
+  background-color: #e5e7eb;
+}
+
+.card-content {
+  padding: 16px 16px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 /* Resumo no CARD BASE */
 
 .text-body-clamp {

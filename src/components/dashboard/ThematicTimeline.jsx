@@ -41,8 +41,17 @@ export default function ThematicTimeline({ data = [] }) {
   const [selected, setSelected] = useState(null);
 
   const years = useMemo(() => {
-    const ys = data.map((d) => Number(d.ano)).filter(Boolean);
-    return [...new Set(ys)].sort((a, b) => a - b);
+  const ys = data.map((d) => Number(d.ano)).filter(Boolean);
+
+  const min = Math.min(...ys);
+  const max = Math.max(...ys);
+
+  const fullRange = [];
+  for (let y = min; y <= max; y++) {
+    fullRange.push(y);
+  }
+
+    return fullRange;
   }, [data]);
 
   const minYear = years[0] || 2017;
@@ -149,7 +158,7 @@ export default function ThematicTimeline({ data = [] }) {
     <section className="creative-timeline-section">
       <div className="creative-timeline-header">
         <div>
-          <h2>Cronologia temática por instituição</h2>
+          <h2>Cronologia por instituição</h2>
           <p>
             Visualização interativa da distribuição temporal das teses e
             dissertações por instituição, tema e grau académico.
