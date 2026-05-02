@@ -347,14 +347,7 @@ export default function ThematicTimeline({ data = [] }) {
 
                   {selected?.id === item.id && (
                     <>
-                      {item.themes?.length > 0 && (
-                        <div className="record-tags">
-                          {item.themes.map((theme) => (
-                            <span key={theme}>{theme}</span>
-                          ))}
-                        </div>
-                      )}
-
+    
                       {item.description && (
                         <p className="record-description">
                           {short(item.description, 260)}
